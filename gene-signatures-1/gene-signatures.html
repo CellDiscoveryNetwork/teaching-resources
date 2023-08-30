@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Marc Elosua Bayes">
+
+<title>Gene Signatures - How to score &amp; interpret</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="gene-signatures_files/libs/clipboard/clipboard.min.js"></script>
+<script src="gene-signatures_files/libs/quarto-html/quarto.js"></script>
+<script src="gene-signatures_files/libs/quarto-html/popper.min.js"></script>
+<script src="gene-signatures_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="gene-signatures_files/libs/quarto-html/anchor.min.js"></script>
+<link href="gene-signatures_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="gene-signatures_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="gene-signatures_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="gene-signatures_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="gene-signatures_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="gene-signatures_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="gene-signatures_files/libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Gene Signatures - How to score &amp; interpret</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Marc Elosua Bayes </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Gene signatures are commonly used in routine single cell analysis. Many methods exists but they are not all created equallty. In this tutorial we are going to go follow a recent benchamrking paper <strong>(<span class="citation" data-cites="badia-i-mompel2022">Badia-i-Mompel et al. (<a href="#ref-badia-i-mompel2022" role="doc-biblioref">2022</a>)</span>)</strong> and follow their guidelines on best practices on how to compute and interpret these scores!</p>
+<p>Before we start here are some key concepts that will help us and frame the vignette!</p>
+<ul>
+<li><p><strong>What is a gene signature?</strong></p>
+<p>A <em>“gene signature”</em> can be stated as a single or a group of genes in a cell having a unique pattern of gene expression that is the consequence of either changed biological process or altered pathogenic medical terms <strong>(<span class="citation" data-cites="mallik2018">Mallik and Zhao (<a href="#ref-mallik2018" role="doc-biblioref">2018</a>)</span>)</strong>.</p></li>
+<li><p><strong>What is a cell type signature?</strong></p>
+<p>A cell type signature is a gene signature representing a group of genes underlying the biological processes characteristic of a cell type.</p></li>
+<li><p><strong>How do we score them in our dataset?</strong></p>
+<p>There are many ways to score gene signatures as shown in the <code>decoupleR</code> paper <strong>(<span class="citation" data-cites="badia-i-mompel2022">Badia-i-Mompel et al. (<a href="#ref-badia-i-mompel2022" role="doc-biblioref">2022</a>)</span>)</strong>. However, they do not all perform the same and it is important to select a robust method. The suggested method after their benchmarking is running a Univariate Linear Model where the gene expression values are the response variable and the regulator weights in the gene signature are the explanatory one. The obtained t-value from the fitted model is the activity ulm of a given regulator.</p></li>
+<li><p><strong>How do we interpret that score?</strong></p>
+<p>Scoring gene signatures using Univariate Linear Models and using the resulting t-value as the scoring metric allows us to simultaneously interpret in a single statistic the direction of activity (either + or -) and its significance (the magnitude of the score).</p></li>
+</ul>
+</section>
+<section id="libraries" class="level2">
+<h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
+<p>Load the libraries and install the packages needed to run this notebook</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Seurat)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># install tutorial data if it doesn't exist </span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pbmc3k.SeuratData"</span>, <span class="at">character.only =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">install.packages</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"https://seurat.nygenome.org/src/contrib/pbmc3k.SeuratData_3.0.0.tar.gz"</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">repos =</span> <span class="cn">NULL</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"source"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pbmc3k.SeuratData)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("BiocManager")</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># BiocManager::install("decoupleR")</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(decoupleR)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("DT")</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DT)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># BiocManager::install("ComplexHeatmap")</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ComplexHeatmap)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Remember to set a seed so the analysis is reproducible!</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">687</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="load-data" class="level2">
+<h2 class="anchored" data-anchor-id="load-data">Load data</h2>
+<p>For this purpose we are going to use the PBMC dataset from 10X Genomics <a href="https://www.10xgenomics.com/resources/datasets?query=pbmc%203k&amp;page=1&amp;configure%5BhitsPerPage%5D=50&amp;configure%5BmaxValuesPerFacet%5D=1000">here</a> from the <code>pbmc3k.SeuratData</code> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pbmc3k</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>An object of class Seurat 
+13714 features across 2700 samples within 1 assay 
+Active assay: RNA (13714 features, 0 variable features)</code></pre>
+</div>
+</div>
+</section>
+<section id="analysis" class="level2">
+<h2 class="anchored" data-anchor-id="analysis">Analysis</h2>
+<section id="preprocessing" class="level3">
+<h3 class="anchored" data-anchor-id="preprocessing">Preprocessing</h3>
+<p>We will do a quick preprocessing of the data. 1) log-normalize, 2) identify highly variable genes, 3) scale their expression and 4) compute PCA on the scaled data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>pbmc3k <span class="ot">&lt;-</span> pbmc3k <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">NormalizeData</span>(<span class="at">verbose =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">FindVariableFeatures</span>(<span class="at">nfeatures =</span> <span class="dv">3000</span>, <span class="at">verbose =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ScaleData</span>(<span class="at">verbose =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">RunPCA</span>(<span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next we check the elbow plot to determine the number of PCs to use for the downstream analysis and then compute UMAP, K-nearest neighbor graph (KNN graph) and run Louvain clustering on it.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Look at elbow plot to assess the number of PCs to use</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ElbowPlot</span>(pbmc3k)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We can see a clear elbow at 10 PCs, we’re going to extend it a bit more and use 15 PCs for the downstream analysis to make sure we are not loosing any biological signal</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pbmc3k <span class="ot">&lt;-</span> <span class="fu">RunUMAP</span>(pbmc3k, <span class="at">reduction =</span> <span class="st">"pca"</span>, <span class="at">dims =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">15</span>, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
+To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
+This message will be shown once per session</code></pre>
+</div>
+</div>
+<p>Next we compute the K-nearest-neighbor graph</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pbmc3k <span class="ot">&lt;-</span> pbmc3k <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">FindNeighbors</span>(<span class="at">verbose =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">FindClusters</span>(<span class="at">resolution =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="fl">0.125</span>, <span class="fl">0.15</span>, <span class="fl">0.2</span>), <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the clustering on the UMAP</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">DimPlot</span>(</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    pbmc3k,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">group.by =</span> <span class="fu">c</span>(</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"RNA_snn_res.0.05"</span>, <span class="st">"RNA_snn_res.0.1"</span>, <span class="st">"RNA_snn_res.0.125"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"RNA_snn_res.0.15"</span>, <span class="st">"RNA_snn_res.0.2"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>For the purpose of this tutorial we are going to proceed with resolution 0.15</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Idents</span>(pbmc3k) <span class="ot">&lt;-</span> pbmc3k<span class="sc">$</span>RNA_snn_res.<span class="fl">0.15</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>(dim_plt <span class="ot">&lt;-</span> <span class="fu">DimPlot</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    pbmc3k,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">group.by =</span> <span class="st">"RNA_snn_res.0.15"</span>) <span class="sc">+</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Dark2"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="480"></p>
+</div>
+</div>
+</section>
+<section id="gene-signature-scoring" class="level3">
+<h3 class="anchored" data-anchor-id="gene-signature-scoring">Gene Signature Scoring</h3>
+<p>Here we define some gene signatures based on prior knowledge</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>bcell <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"MS4A1"</span>, <span class="st">"CD79A"</span>, <span class="st">"CD79B"</span>, <span class="st">"BANK1"</span>, <span class="st">"HLA-DQB1"</span>, <span class="st">"HLA-DQA1"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>tcell <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"CD3D"</span>, <span class="st">"CD3E"</span>, <span class="st">"TRAC"</span>, <span class="st">"TRBC1"</span>, <span class="st">"TRBC2"</span>, <span class="st">"CD4"</span>, <span class="st">"CD8A"</span>, <span class="st">"CD8B"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>tnaive <span class="ot">&lt;-</span> <span class="fu">c</span>(tcell, <span class="st">"IL7R"</span>, <span class="st">"CCR7"</span>, <span class="st">"TCF7"</span>, <span class="st">"LEF1"</span>, <span class="st">"SELL"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>cd8cyto <span class="ot">&lt;-</span> <span class="fu">c</span>(tcell, <span class="st">"GZMA"</span>, <span class="st">"GZMK"</span>, <span class="st">"NKG7"</span>, <span class="st">"CCL5"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>mono <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"FCGR3A"</span>, <span class="st">"CD14"</span>, <span class="st">"S100A9"</span>, <span class="st">"S100A8"</span>, <span class="st">"MS4A7"</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>nks <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"NCR1"</span>, <span class="st">"NCR2"</span>, <span class="st">"NCR3"</span>, <span class="st">"FCGR3A"</span>, <span class="st">"GZMA"</span>, <span class="st">"GZMK"</span>, <span class="st">"NKG7"</span>, <span class="st">"CCL5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can see how there are some genes that are specific for each signature but others are share between them. This is important to take into account when computing the gene signatures and interpreting their scores.</p>
+<p>To help us compute these gene signatures we are going to use the R package <a href="https://www.bioconductor.org/packages/release/bioc/html/decoupleR.html"><code>decoupleR</code></a> from Bioconductor. <code>decoupleR</code> is a great for carrying out these analysis since it is a framework that contains different statistical methods to compute these scores.</p>
+<p><code>decoupleR</code> requires the gene signatures to be passed as a dataframe so we are going to convert our gene signature vectors into a unified dataframe. <code>mor</code> stands for <em>Mode Of Regulation</em>, at the moment since we don’t have a score of how important that gene is for that signature we are going to weight them all equally with a value of 1.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sig_ls <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">"B cells"</span> <span class="ot">=</span> bcell, <span class="st">"T cells"</span> <span class="ot">=</span> tcell, <span class="st">"Naive T cells"</span> <span class="ot">=</span> tnaive, <span class="st">"CD8 Cytotoxic"</span> <span class="ot">=</span> cd8cyto, <span class="st">"Monocytes"</span> <span class="ot">=</span> mono, <span class="st">"NKs"</span> <span class="ot">=</span> nks)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>sig_df <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">names</span>(sig_ls), <span class="cf">function</span>(i) {</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">signature =</span> i,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">gene =</span> sig_ls[[i]],</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">mor =</span> <span class="dv">1</span> </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">%&gt;%</span> <span class="fu">bind_rows</span>()</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>sig_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       signature     gene mor
+1        B cells    MS4A1   1
+2        B cells    CD79A   1
+3        B cells    CD79B   1
+4        B cells    BANK1   1
+5        B cells HLA-DQB1   1
+6        B cells HLA-DQA1   1
+7        T cells     CD3D   1
+8        T cells     CD3E   1
+9        T cells     TRAC   1
+10       T cells    TRBC1   1
+11       T cells    TRBC2   1
+12       T cells      CD4   1
+13       T cells     CD8A   1
+14       T cells     CD8B   1
+15 Naive T cells     CD3D   1
+16 Naive T cells     CD3E   1
+17 Naive T cells     TRAC   1
+18 Naive T cells    TRBC1   1
+19 Naive T cells    TRBC2   1
+20 Naive T cells      CD4   1
+21 Naive T cells     CD8A   1
+22 Naive T cells     CD8B   1
+23 Naive T cells     IL7R   1
+24 Naive T cells     CCR7   1
+25 Naive T cells     TCF7   1
+26 Naive T cells     LEF1   1
+27 Naive T cells     SELL   1
+28 CD8 Cytotoxic     CD3D   1
+29 CD8 Cytotoxic     CD3E   1
+30 CD8 Cytotoxic     TRAC   1
+31 CD8 Cytotoxic    TRBC1   1
+32 CD8 Cytotoxic    TRBC2   1
+33 CD8 Cytotoxic      CD4   1
+34 CD8 Cytotoxic     CD8A   1
+35 CD8 Cytotoxic     CD8B   1
+36 CD8 Cytotoxic     GZMA   1
+37 CD8 Cytotoxic     GZMK   1
+38 CD8 Cytotoxic     NKG7   1
+39 CD8 Cytotoxic     CCL5   1
+40     Monocytes   FCGR3A   1
+41     Monocytes     CD14   1
+42     Monocytes   S100A9   1
+43     Monocytes   S100A8   1
+44     Monocytes    MS4A7   1
+45           NKs     NCR1   1
+46           NKs     NCR2   1
+47           NKs     NCR3   1
+48           NKs   FCGR3A   1
+49           NKs     GZMA   1
+50           NKs     GZMK   1
+51           NKs     NKG7   1
+52           NKs     CCL5   1</code></pre>
+</div>
+</div>
+</section>
+<section id="ulm" class="level3">
+<h3 class="anchored" data-anchor-id="ulm">ULM</h3>
+<p><code>ulm</code> provides the analytical solution to <code>norm_wmean</code> if we could run the later with infinite iterations. As mentioned in the details of the function: <em>“ULM fits a linear model for each sample and regulator, where the observed molecular readouts in mat are the response variable and the regulator weights in net are the explanatory one. Target features with no associated weight are set to zero. The obtained t-value from the fitted model is the activity ulm of a given regulator.”</em></p>
+<p>Moreover, a nice thing about <code>ulm</code> (and <code>norm_wmean</code>) is that in a single statistic it provides the direction of activity (either + or -) and its significance (the magnitude of the score). Making the scores very easy to interpret!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ulm_start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> decoupleR<span class="sc">::</span><span class="fu">run_ulm</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">mat =</span> pbmc3k<span class="sc">@</span>assays<span class="sc">$</span>RNA<span class="sc">@</span>data,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">network =</span> sig_df,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">.source =</span> <span class="st">"signature"</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">.target =</span> <span class="st">"gene"</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">.mor =</span> <span class="st">"mor"</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"Time to run ulm is {round(difftime(Sys.time(), ulm_start, units = 's'), 0)} seconds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Time to run ulm is 24 seconds</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 16,200 × 5
+   statistic source  condition       score  p_value
+   &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;           &lt;dbl&gt;    &lt;dbl&gt;
+ 1 ulm       B cells AAACATACAACCAC -0.556 5.78e- 1
+ 2 ulm       B cells AAACATTGAGCTAC  9.47  3.13e-21
+ 3 ulm       B cells AAACATTGATCAGC -0.678 4.98e- 1
+ 4 ulm       B cells AAACCGTGCTTCCG  2.17  2.97e- 2
+ 5 ulm       B cells AAACCGTGTATGCG -0.475 6.35e- 1
+ 6 ulm       B cells AAACGCACTGGTAC  2.61  9.18e- 3
+ 7 ulm       B cells AAACGCTGACCAGT -0.563 5.73e- 1
+ 8 ulm       B cells AAACGCTGGTTCTT -0.565 5.72e- 1
+ 9 ulm       B cells AAACGCTGTAGCCA  1.27  2.03e- 1
+10 ulm       B cells AAACGCTGTTTCTG  1.29  1.95e- 1
+# ℹ 16,190 more rows</code></pre>
+</div>
+</div>
+<section id="visualization" class="level4">
+<h4 class="anchored" data-anchor-id="visualization">Visualization</h4>
+<p>We can directly add the <code>ulm</code> scores to an assay in our object and visualize the results</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>pbmc3k[[<span class="st">'pathwaysulm'</span>]] <span class="ot">&lt;-</span> res <span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">id_cols =</span> <span class="st">'source'</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">names_from =</span> <span class="st">'condition'</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">values_from =</span> <span class="st">'score'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="st">'source'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  Seurat<span class="sc">::</span><span class="fu">CreateAssayObject</span>(.)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Change assay</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="fu">DefaultAssay</span>(<span class="at">object =</span> pbmc3k) <span class="ot">&lt;-</span> <span class="st">"pathwaysulm"</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Scale the data for comparison across signatures </span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>pbmc3k <span class="ot">&lt;-</span> <span class="fu">ScaleData</span>(pbmc3k)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Centering and scaling data matrix</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>pbmc3k<span class="sc">@</span>assays<span class="sc">$</span>pathwaysulm<span class="sc">@</span>data <span class="ot">&lt;-</span> pbmc3k<span class="sc">@</span>assays<span class="sc">$</span>pathwaysulm<span class="sc">@</span>scale.data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="umap-visualization" class="level5">
+<h5 class="anchored" data-anchor-id="umap-visualization">UMAP visualization</h5>
+<p>Plot all the gene signatures one after the other</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plt <span class="ot">&lt;-</span> <span class="fu">FeaturePlot</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    pbmc3k,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">features =</span> <span class="fu">rownames</span>(pbmc3k<span class="sc">@</span>assays<span class="sc">$</span>pathwaysulm),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">&amp;</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_viridis_c</span>(<span class="at">option =</span> <span class="st">"magma"</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>plt <span class="sc">+</span> dim_plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="1440"></p>
+</div>
+</div>
+</section>
+<section id="heatmap-by-groups" class="level5">
+<h5 class="anchored" data-anchor-id="heatmap-by-groups">Heatmap by groups</h5>
+<p>We can also visualize the gene signature scores for each individual cell using a heatmap</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DoHeatmap</span>(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    pbmc3k,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">features =</span> <span class="fu">rownames</span>(pbmc3k<span class="sc">@</span>assays<span class="sc">$</span>pathwaysulm),</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">slot =</span> <span class="st">"data"</span>,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">group.colors =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="at">n =</span> <span class="dv">7</span>, <span class="at">name =</span> <span class="st">"Dark2"</span>)) <span class="sc">+</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"viridis"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>From the plot above we can see how we have very distinct populations in our datasets. We can also look at it a bit less granular by looking at the mean activity score per cluster.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract activities from object as a long dataframe</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">as.matrix</span>(pbmc3k<span class="sc">@</span>assays<span class="sc">$</span>pathwaysulm<span class="sc">@</span>data)) <span class="sc">%&gt;%</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cluster =</span> pbmc3k<span class="sc">$</span>RNA_snn_res.<span class="fl">0.15</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">-</span>cluster, <span class="at">names_to =</span> <span class="st">"source"</span>, <span class="at">values_to =</span> <span class="st">"score"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cluster, source) <span class="sc">%&gt;%</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(score))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'cluster'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Transform to wide matrix</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>top_acts_mat <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> <span class="st">'cluster'</span>, <span class="at">names_from =</span> <span class="st">'source'</span>,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="st">'mean'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_to_rownames</span>(<span class="st">'cluster'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.matrix</span>()</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Choose color palette</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>palette_length <span class="ot">=</span> <span class="dv">100</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>my_color <span class="ot">=</span> <span class="fu">colorRampPalette</span>(<span class="fu">c</span>(<span class="st">"Darkblue"</span>, <span class="st">"white"</span>,<span class="st">"red"</span>))(palette_length)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Show which is the max and min of the scaled value to make sure we set a scale that makes sense</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"Note that the maximum scaled value is: {round(max(top_acts_mat), 2)}, and the minimum is {round(min(top_acts_mat), 2)}."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Note that the maximum scaled value is: 2.41, and the minimum is -1.05.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>my_breaks <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">0</span>, <span class="at">length.out=</span><span class="fu">ceiling</span>(palette_length<span class="sc">/</span><span class="dv">2</span>) <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>               <span class="fu">seq</span>(<span class="fl">0.05</span>, <span class="dv">2</span>, <span class="at">length.out=</span><span class="fu">floor</span>(palette_length<span class="sc">/</span><span class="dv">2</span>)))</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>ComplexHeatmap<span class="sc">::</span><span class="fu">pheatmap</span>(top_acts_mat, <span class="at">border_color =</span> <span class="cn">NA</span>, <span class="at">color=</span>my_color, <span class="at">breaks =</span> my_breaks)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="576"></p>
+</div>
+</div>
+</section>
+<section id="heatmap-for-gene-expression" class="level5">
+<h5 class="anchored" data-anchor-id="heatmap-for-gene-expression">Heatmap for gene expression</h5>
+<p>To fully grasp which genes are driving each gene signature we want to visualize the gene expression of each gene by each cell in each signature. We can do so using the <code>ComplexHeatmap</code> package and a little bit of data processing. For ease here is a function you can incorporate in your analysis:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>geneHM <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>        object,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>        sig_df,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>        sig_name,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>        sig_assay,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>        .source,</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>        .target,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">sig_slot =</span> <span class="st">"data"</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">expr_assay =</span> <span class="st">"RNA"</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">expr_slot =</span> <span class="st">"data"</span>,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">grouping =</span> <span class="cn">NULL</span>,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">grouping_color =</span> <span class="cn">NULL</span>,</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">expr_cols =</span> viridisLite<span class="sc">::</span><span class="fu">magma</span>(<span class="dv">100</span>)) {</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract Gene Expression Matrix from Seurat Object</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    gene_expr <span class="ot">&lt;-</span> <span class="fu">GetAssayData</span>(object, <span class="at">assay =</span> expr_assay, <span class="at">slot =</span> expr_slot)</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Subset the genes of the signature from the Gene Expression Matrix</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    genes_of_interest <span class="ot">&lt;-</span> sig_df[, .target][<span class="fu">which</span>(sig_df[, .source] <span class="sc">%in%</span> sig_name)]</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Subset the genes intersecting between gene expression and genes in signature</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>    g_int <span class="ot">&lt;-</span> <span class="fu">intersect</span>(<span class="fu">rownames</span>(gene_expr), genes_of_interest)</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(g_int) <span class="sc">&lt;</span> <span class="fu">length</span>(genes_of_interest)) {</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>        genes_excluded <span class="ot">&lt;-</span> genes_of_interest[<span class="sc">!</span>genes_of_interest <span class="sc">%in%</span> <span class="fu">rownames</span>(gene_expr)]</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>        genes_excluded <span class="ot">&lt;-</span> <span class="fu">paste</span>(genes_excluded, <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">message</span>(<span class="fu">paste0</span>(</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Genes "</span>, genes_excluded,</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">" are in the gene signature but not in the expression matrix,"</span>,</span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>            <span class="st">" therefore, they have been excluded."</span>))</span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Subset expression matrix to only genes of interest</span></span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>    gene_expr <span class="ot">&lt;-</span> gene_expr[g_int, ]</span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract the Scores of the Signature of interest</span></span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>    sig_score <span class="ot">&lt;-</span> <span class="fu">GetAssayData</span>(object, <span class="at">assay =</span> sig_assay, <span class="at">slot =</span> sig_slot)</span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a>    sig_vec <span class="ot">&lt;-</span> sig_score[sig_name, ]</span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a>    anno <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">score =</span> sig_vec)</span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make sure they are in the right order</span></span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a>    anno <span class="ot">&lt;-</span> anno[<span class="fu">colnames</span>(gene_expr), , drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb28-42"><a href="#cb28-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-43"><a href="#cb28-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add any metadata if specified</span></span>
+<span id="cb28-44"><a href="#cb28-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(grouping)) {</span>
+<span id="cb28-45"><a href="#cb28-45" aria-hidden="true" tabindex="-1"></a>        meta <span class="ot">&lt;-</span> object<span class="sc">@</span>meta.data[, grouping, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb28-46"><a href="#cb28-46" aria-hidden="true" tabindex="-1"></a>        anno <span class="ot">&lt;-</span> <span class="fu">cbind</span>(anno, meta[<span class="fu">rownames</span>(anno), , <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
+<span id="cb28-47"><a href="#cb28-47" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb28-48"><a href="#cb28-48" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-49"><a href="#cb28-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">is.infinite</span>(<span class="fu">c</span>(anno<span class="sc">$</span>score))))</span>
+<span id="cb28-50"><a href="#cb28-50" aria-hidden="true" tabindex="-1"></a>        <span class="fu">stop</span>(<span class="st">"There are scores with Inf values, please address this outside of this function. It could be because the slot used is scale_data."</span>)</span>
+<span id="cb28-51"><a href="#cb28-51" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-52"><a href="#cb28-52" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make list of color to paint the annotation columns</span></span>
+<span id="cb28-53"><a href="#cb28-53" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(grouping) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.null</span>(grouping_color)) {</span>
+<span id="cb28-54"><a href="#cb28-54" aria-hidden="true" tabindex="-1"></a>        score <span class="ot">&lt;-</span> circlize<span class="sc">::</span><span class="fu">colorRamp2</span>(</span>
+<span id="cb28-55"><a href="#cb28-55" aria-hidden="true" tabindex="-1"></a>            <span class="at">breaks =</span> <span class="fu">c</span>(<span class="fu">min</span>(anno<span class="sc">$</span>score), <span class="dv">0</span>, <span class="fu">max</span>(anno<span class="sc">$</span>score)),</span>
+<span id="cb28-56"><a href="#cb28-56" aria-hidden="true" tabindex="-1"></a>            <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"white"</span>, <span class="st">"red"</span>))</span>
+<span id="cb28-57"><a href="#cb28-57" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb28-58"><a href="#cb28-58" aria-hidden="true" tabindex="-1"></a>        color_ls <span class="ot">&lt;-</span> <span class="fu">append</span>(grouping_color, score)</span>
+<span id="cb28-59"><a href="#cb28-59" aria-hidden="true" tabindex="-1"></a>        <span class="fu">names</span>(color_ls)[<span class="fu">length</span>(color_ls)] <span class="ot">&lt;-</span> <span class="st">"score"</span></span>
+<span id="cb28-60"><a href="#cb28-60" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb28-61"><a href="#cb28-61" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb28-62"><a href="#cb28-62" aria-hidden="true" tabindex="-1"></a>        color_ls <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb28-63"><a href="#cb28-63" aria-hidden="true" tabindex="-1"></a>            <span class="at">score =</span> circlize<span class="sc">::</span>colorRamp2</span>
+<span id="cb28-64"><a href="#cb28-64" aria-hidden="true" tabindex="-1"></a>            (<span class="at">breaks =</span> <span class="fu">c</span>(<span class="fu">min</span>(anno<span class="sc">$</span>score), <span class="dv">0</span>, <span class="fu">max</span>(anno<span class="sc">$</span>score)),</span>
+<span id="cb28-65"><a href="#cb28-65" aria-hidden="true" tabindex="-1"></a>                      <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"white"</span>, <span class="st">"red"</span>)),</span>
+<span id="cb28-66"><a href="#cb28-66" aria-hidden="true" tabindex="-1"></a>            <span class="at">RNA_snn_res.0.15 =</span> clust_color)</span>
+<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-69"><a href="#cb28-69" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Set the order from most expressing to least expressing </span></span>
+<span id="cb28-70"><a href="#cb28-70" aria-hidden="true" tabindex="-1"></a>    ord <span class="ot">&lt;-</span> <span class="fu">rownames</span>(anno[<span class="fu">order</span>(anno<span class="sc">$</span>score, <span class="at">decreasing =</span> <span class="cn">TRUE</span>), ])</span>
+<span id="cb28-71"><a href="#cb28-71" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add the score of the signature as annotation in the heatmap</span></span>
+<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a>    colAnn <span class="ot">&lt;-</span> <span class="fu">HeatmapAnnotation</span>(</span>
+<span id="cb28-73"><a href="#cb28-73" aria-hidden="true" tabindex="-1"></a>        <span class="at">df =</span> anno[ord, , <span class="at">drop =</span> <span class="cn">FALSE</span>],</span>
+<span id="cb28-74"><a href="#cb28-74" aria-hidden="true" tabindex="-1"></a>        <span class="at">which =</span> <span class="st">'column'</span>,</span>
+<span id="cb28-75"><a href="#cb28-75" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> color_ls)</span>
+<span id="cb28-76"><a href="#cb28-76" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-77"><a href="#cb28-77" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Visualize the Heatmap with the genes and signature </span></span>
+<span id="cb28-78"><a href="#cb28-78" aria-hidden="true" tabindex="-1"></a>    ht <span class="ot">&lt;-</span> <span class="fu">Heatmap</span>(</span>
+<span id="cb28-79"><a href="#cb28-79" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.matrix</span>(gene_expr[, ord]),</span>
+<span id="cb28-80"><a href="#cb28-80" aria-hidden="true" tabindex="-1"></a>        <span class="at">name =</span> <span class="st">"Gene Expression"</span>,</span>
+<span id="cb28-81"><a href="#cb28-81" aria-hidden="true" tabindex="-1"></a>        <span class="at">col =</span> expr_cols,</span>
+<span id="cb28-82"><a href="#cb28-82" aria-hidden="true" tabindex="-1"></a>        <span class="at">cluster_rows =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-83"><a href="#cb28-83" aria-hidden="true" tabindex="-1"></a>        <span class="at">cluster_columns =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb28-84"><a href="#cb28-84" aria-hidden="true" tabindex="-1"></a>        <span class="at">column_title =</span> sig_name,</span>
+<span id="cb28-85"><a href="#cb28-85" aria-hidden="true" tabindex="-1"></a>        <span class="at">column_names_gp =</span> <span class="fu">gpar</span>(<span class="at">fontsize =</span> <span class="dv">14</span>),</span>
+<span id="cb28-86"><a href="#cb28-86" aria-hidden="true" tabindex="-1"></a>        <span class="at">show_column_names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb28-87"><a href="#cb28-87" aria-hidden="true" tabindex="-1"></a>      <span class="at">top_annotation =</span> colAnn)</span>
+<span id="cb28-88"><a href="#cb28-88" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-89"><a href="#cb28-89" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Return ComplexHeatmap</span></span>
+<span id="cb28-90"><a href="#cb28-90" aria-hidden="true" tabindex="-1"></a>    <span class="fu">draw</span>(ht)</span>
+<span id="cb28-91"><a href="#cb28-91" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb28-92"><a href="#cb28-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-93"><a href="#cb28-93" aria-hidden="true" tabindex="-1"></a><span class="co"># Define colors for the grouping variable</span></span>
+<span id="cb28-94"><a href="#cb28-94" aria-hidden="true" tabindex="-1"></a>clust_color <span class="ot">&lt;-</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(</span>
+<span id="cb28-95"><a href="#cb28-95" aria-hidden="true" tabindex="-1"></a>    <span class="fu">length</span>(<span class="fu">unique</span>(pbmc3k<span class="sc">$</span>RNA_snn_res.<span class="fl">0.15</span>)),</span>
+<span id="cb28-96"><a href="#cb28-96" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Dark2"</span>)</span>
+<span id="cb28-97"><a href="#cb28-97" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(clust_color) <span class="ot">&lt;-</span> <span class="fu">levels</span>(pbmc3k<span class="sc">$</span>RNA_snn_res.<span class="fl">0.15</span>)</span>
+<span id="cb28-98"><a href="#cb28-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-99"><a href="#cb28-99" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the heatmaps for all signatures</span></span>
+<span id="cb28-100"><a href="#cb28-100" aria-hidden="true" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">unique</span>(sig_df<span class="sc">$</span>signature), <span class="cf">function</span>(i) {</span>
+<span id="cb28-101"><a href="#cb28-101" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geneHM</span>(</span>
+<span id="cb28-102"><a href="#cb28-102" aria-hidden="true" tabindex="-1"></a>        <span class="at">object =</span> pbmc3k,</span>
+<span id="cb28-103"><a href="#cb28-103" aria-hidden="true" tabindex="-1"></a>        <span class="at">sig_df =</span> sig_df,</span>
+<span id="cb28-104"><a href="#cb28-104" aria-hidden="true" tabindex="-1"></a>        <span class="at">.source =</span> <span class="st">"signature"</span>,</span>
+<span id="cb28-105"><a href="#cb28-105" aria-hidden="true" tabindex="-1"></a>        <span class="at">.target =</span> <span class="st">"gene"</span>,</span>
+<span id="cb28-106"><a href="#cb28-106" aria-hidden="true" tabindex="-1"></a>        <span class="at">sig_name =</span> i,</span>
+<span id="cb28-107"><a href="#cb28-107" aria-hidden="true" tabindex="-1"></a>        <span class="at">expr_slot =</span> <span class="st">"data"</span>,</span>
+<span id="cb28-108"><a href="#cb28-108" aria-hidden="true" tabindex="-1"></a>        <span class="at">expr_assay =</span> <span class="st">"RNA"</span>,</span>
+<span id="cb28-109"><a href="#cb28-109" aria-hidden="true" tabindex="-1"></a>        <span class="at">sig_assay =</span> <span class="st">"pathwaysulm"</span>,</span>
+<span id="cb28-110"><a href="#cb28-110" aria-hidden="true" tabindex="-1"></a>        <span class="at">sig_slot =</span> <span class="st">"data"</span>,</span>
+<span id="cb28-111"><a href="#cb28-111" aria-hidden="true" tabindex="-1"></a>        <span class="at">grouping =</span> <span class="fu">c</span>(<span class="st">"RNA_snn_res.0.15"</span>),</span>
+<span id="cb28-112"><a href="#cb28-112" aria-hidden="true" tabindex="-1"></a>        <span class="at">grouping_color =</span> <span class="fu">list</span>(<span class="at">RNA_snn_res.0.15 =</span> clust_color))</span>
+<span id="cb28-113"><a href="#cb28-113" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Genes TRAC, TRBC1, TRBC2 are in the gene signature but not in the expression matrix, therefore, they have been excluded.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="1152"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Genes TRAC, TRBC1, TRBC2 are in the gene signature but not in the expression matrix, therefore, they have been excluded.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-15-2.png" class="img-fluid" width="1152"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Genes TRAC, TRBC1, TRBC2 are in the gene signature but not in the expression matrix, therefore, they have been excluded.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-15-3.png" class="img-fluid" width="1152"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-15-4.png" class="img-fluid" width="1152"></p>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Genes NCR2 are in the gene signature but not in the expression matrix, therefore, they have been excluded.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-15-5.png" class="img-fluid" width="1152"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-15-6.png" class="img-fluid" width="1152"></p>
+</div>
+</div>
+<p>Here are some examples of how to interpret these gene signatures:</p>
+<ol type="1">
+<li><p>In the Monocyte signature not all cells that have the same score have the same genes expressed. For example, wee can see how among the cells with high scores there are cells that express CD14 with a gradient switching to expression of FCGR3A. Therefore, classifying all of these cells as the same just because the gene signature scoring returns the same value would be a mistake. In this case, a likely scenario could be that the gene signature isn’t teasing out differences between classical, intermediate, and non-classical monocytes.</p></li>
+<li><p>When looking at the CD8 Cytotoxic compartment we also observe how NK cells have a high score despite not expressing CD3 genes. This can be due to the higher expression of NKG7 i NKs vs CD8 T cells for example.</p></li>
+<li><p>This is more of a dummy example but when assessing the T cell signature <code>c("CD3D", "CD3E", "TRAC", "TRBC1", "TRBC2", "CD4", "CD8A", "CD8B")</code> CD8 T cells have a higher score than CD4 T cells. This is due to there being two CD8 genes (A &amp; B) as well as CD8B being expressed at higher levels than CD4. Therefore, we need to keep an eye on these things to better interpret the heterogeneity within our populations.</p></li>
+</ol>
+</section>
+</section>
+</section>
+</section>
+<section id="extra" class="level2">
+<h2 class="anchored" data-anchor-id="extra">Extra!</h2>
+<p>In the above example we showed how to compute signature scores using <code>ulm</code>, if we take a closer look to the original decoupleR <a href="https://academic.oup.com/bioinformaticsadvances/article/2/1/vbac016/6544613?login=true">paper</a> (badia-i-mompel 2022) we can see how in Supplementary Figure 3 <code>ulm</code> and <code>mlm</code> slightly outperform <code>norm_wmean</code> in terms of AUROC and AUPRC. Moreover, in the Bioconductor Vignettes they showcase the use of <code>run_wmean</code> instead of <code>ulm</code>. So… why use <code>ulm</code> instead of <code>norm_wmean</code>?</p>
+<p><br>
+<img src="img/decoupler-method-performance.png" class="img-fluid" width="584"></p>
+<p>The differences in performance between <code>ulm</code> and <code>norm_wmean</code> is very small, as they are consistently in the top 3 performing methods. These results are also shown in Supplementary Table 3 where <code>mlm</code>, <code>ulm</code>, and <code>norm_wmean</code> have a median AUC in their benchmarking pipeline of 0.67, 0.66 and 0.65 respectively. In terms of their computational efficiency measured in time and memory consumption <code>mlm</code> really scales poorly with the number of cells and samples as we can see in Supplementary Figure 7 while <code>ulm</code> does slightly better. We can also observe how <code>wmean</code> is clearly one of the most efficient tools, but this doesn’t take into account the permutations needed to compute <code>norm_wmean</code>. In practice, and after consulting with the developers <a href="https://github.com/saezlab/decoupleR/issues/85#issuecomment-1698798789">here</a> <code>ulm</code> has the double benefit of providing the analytical solution and being much more computational efficient than computing permutations to obtain the <code>norm_wmean</code> score.</p>
+<p><img src="img/decoupler-time-memory.png" class="img-fluid" width="540"></p>
+<section id="run-norm_wmean" class="level3">
+<h3 class="anchored" data-anchor-id="run-norm_wmean">Run norm_wmean</h3>
+<p>In this section we are going to show how computing the <code>normalized weighted mean</code> with 100 permutations provides a very similar result to the <code>ulm</code> but takes much longer!.</p>
+<p>Run decouple on our data using the <code>wmean</code> method. As mentioned in the details of the function: <em>“WMEAN infers regulator activities by first multiplying each target feature by its associated weight which then are summed to an enrichment score <code>wmean</code>. Furthermore, permutations of random target features can be performed to obtain a null distribution that can be used to compute a z-score <code>norm_wmean</code>, or a corrected estimate <code>corr_wmean</code> by multiplying <code>wmean</code> by the minus log10 of the obtained empirical p-value.”.</em></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>wmean_start <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>res_wmean <span class="ot">&lt;-</span> decoupleR<span class="sc">::</span><span class="fu">run_wmean</span>(</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">mat =</span> pbmc3k<span class="sc">@</span>assays<span class="sc">$</span>RNA<span class="sc">@</span>data,</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">network =</span> sig_df,</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">.source =</span> <span class="st">"signature"</span>,</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">.target =</span> <span class="st">"gene"</span>,</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">.mor =</span> <span class="st">"mor"</span>,</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">times =</span> <span class="dv">1000</span>)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"Time to run norm_wmean with 1000 iterations is {round(difftime(Sys.time(), wmean_start, units = 's'), 0)} seconds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Time to run norm_wmean with 1000 iterations is 90 seconds</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>res_wmean</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 48,600 × 5
+   statistic  source  condition      score p_value
+   &lt;chr&gt;      &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;   &lt;dbl&gt;
+ 1 corr_wmean B cells AAACATACAACCAC 0       0.576
+ 2 corr_wmean B cells AAACATTGAGCTAC 5.74    0.002
+ 3 corr_wmean B cells AAACATTGATCAGC 0       0.84 
+ 4 corr_wmean B cells AAACCGTGCTTCCG 0.549   0.13 
+ 5 corr_wmean B cells AAACCGTGTATGCG 0       0.422
+ 6 corr_wmean B cells AAACGCACTGGTAC 0.807   0.064
+ 7 corr_wmean B cells AAACGCTGACCAGT 0       0.59 
+ 8 corr_wmean B cells AAACGCTGGTTCTT 0       0.644
+ 9 corr_wmean B cells AAACGCTGTAGCCA 0.297   0.152
+10 corr_wmean B cells AAACGCTGTTTCTG 0.294   0.172
+# ℹ 48,590 more rows</code></pre>
+</div>
+</div>
+<p>We obtain a long format tibble containing:</p>
+<ul>
+<li><p><strong>statistic</strong> - Indicating which method is associated with each score</p>
+<ul>
+<li><p>wmean: multiplying each target feature by its associated weight which then are summed to an enrichment score</p></li>
+<li><p>norm_wmean: permutations of random target features can be performed to obtain a null distribution that can be used to compute a z-score <code>norm_wmean</code></p></li>
+<li><p>corr_wmean: corrected estimate by multiplying <code>wmean</code> by the minus log10 of the obtained empirical p-value</p></li>
+</ul></li>
+<li><p><strong>source</strong> (aka - signature name)</p></li>
+<li><p><strong>condition</strong> - cell barcode</p></li>
+<li><p><strong>score</strong> - the signature score, the inferred biological activity.</p></li>
+<li><p><strong>p_value</strong> - P value obtained from permutations</p></li>
+</ul>
+<p>Compare <code>ulm</code> with <code>norm_wmean</code> scores</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>res2 <span class="ot">&lt;-</span> res <span class="sc">%&gt;%</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(statistic, source, score, condition)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(res2) <span class="ot">&lt;-</span> glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"{colnames(res2)}_ulm"</span>)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>res_wmean2 <span class="ot">&lt;-</span> res_wmean <span class="sc">%&gt;%</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(statistic <span class="sc">==</span> <span class="st">"norm_wmean"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(statistic, source, score, condition)</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(res_wmean2) <span class="ot">&lt;-</span> glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"{colnames(res_wmean2)}_wmean"</span>)</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>res2 <span class="sc">%&gt;%</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>        res_wmean2,</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"condition_ulm"</span> <span class="ot">=</span> <span class="st">"condition_wmean"</span>, <span class="st">"source_ulm"</span> <span class="ot">=</span> <span class="st">"source_wmean"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> score_ulm, <span class="at">y =</span> score_wmean)) <span class="sc">+</span></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>source_ulm, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">geom =</span> <span class="st">"smooth"</span>) <span class="sc">+</span></span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>    ggpubr<span class="sc">::</span><span class="fu">stat_cor</span>(<span class="at">method =</span> <span class="st">"pearson"</span>) <span class="sc">+</span></span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"ulm"</span>, <span class="at">y =</span> <span class="st">"norm_wmean"</span>) <span class="sc">+</span></span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="gene-signatures_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="864"></p>
+</div>
+</div>
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-badia-i-mompel2022" class="csl-entry" role="listitem">
+Badia-i-Mompel, Pau, Jesús Vélez Santiago, Jana Braunger, Celina Geiss, Daniel Dimitrov, Sophia Müller-Dott, Petr Taus, et al. 2022. <span>“decoupleR: Ensemble of Computational Methods to Infer Biological Activities from Omics Data.”</span> Edited by Marieke Lydia Kuijjer. <em>Bioinformatics Advances</em> 2 (1). <a href="https://doi.org/10.1093/bioadv/vbac016">https://doi.org/10.1093/bioadv/vbac016</a>.
+</div>
+<div id="ref-mallik2018" class="csl-entry" role="listitem">
+Mallik, Saurav, and Zhongming Zhao. 2018. <span>“Identification of Gene Signatures from RNA-Seq Data Using Pareto-Optimal Cluster Algorithm.”</span> <em>BMC Systems Biology</em> 12 (S8). <a href="https://doi.org/10.1186/s12918-018-0650-2">https://doi.org/10.1186/s12918-018-0650-2</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
