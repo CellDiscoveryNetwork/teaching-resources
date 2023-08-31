@@ -15,7 +15,7 @@ theme:
 
 ## Introduction
 
-Gene signatures are commonly used in routine single cell analysis. Many methods exists but they are not all created equallty. In this tutorial we are going to go follow a recent benchmarking paper **@badia-i-mompel2022** and follow their guidelines on best practices when scoring gene signatures!
+Gene signatures are commonly used in routine single cell analysis. Many methods exists but they are not all created equallty. In this tutorial we are going to go follow a recent benchmarking paper @badia-i-mompel2022 and follow their guidelines on best practices when scoring gene signatures!
 
 With this tutorial we hope to familiarize you with the concepts of gene signatures, how they are scored in single cell datasets and how to interpret the scores obtained!
 
@@ -23,7 +23,7 @@ Before we start here are some key concepts that will help us and frame the vigne
 
 -   **What is a gene signature?**
 
-    A *"gene signature"* can be stated as a single or a group of genes in a cell having a unique pattern of gene expression that is the consequence of either changed biological process or altered pathogenic medical terms **@mallik2018**.
+    A *"gene signature"* can be stated as a single or a group of genes in a cell having a unique pattern of gene expression that is the consequence of either changed biological process or altered pathogenic medical terms @mallik2018.
 
 -   **What is a cell type signature?**
 
@@ -31,7 +31,7 @@ Before we start here are some key concepts that will help us and frame the vigne
 
 -   **How do we score them in our dataset?**
 
-    Scoring a gene signature means to obtain a value for that signature for each cell in our datasets that represents how active the gene program is in each cell. There are many ways to score gene signatures as shown in the `decoupleR` paper **@badia-i-mompel2022**. However, they do not all perform the same and it is important to select a robust method. The suggested method after their benchmarking analysis is running a Univariate Linear Model (ULM) where the gene expression values are the response variable and the regulator weights in the gene signature are the explanatory one (don't worry, we'll go through this in more detail in a second). The obtained t-value from the fitted model is the activity score of that gene signature in that cell.
+    Scoring a gene signature means to obtain a value for that signature for each cell in our datasets that represents how active the gene program is in each cell. There are many ways to score gene signatures as shown in the `decoupleR` paper @badia-i-mompel2022. However, they do not all perform the same and it is important to select a robust method. The suggested method after their benchmarking analysis is running a Univariate Linear Model (ULM) where the gene expression values are the response variable and the regulator weights in the gene signature are the explanatory one (don't worry, we'll go through this in more detail in a second). The obtained t-value from the fitted model is the activity score of that gene signature in that cell.
 
 -   **How do we interpret that score?**
 
@@ -183,8 +183,8 @@ res <- decoupleR::run_ulm(
 glue::glue("Time to run ulm is {round(difftime(Sys.time(), ulm_start, units = 's'), 0)} seconds")
 ```
 
-
 We can see how every cells has a score for every signature!
+
 ```{r}
 # Looking at the first 10 entries
 res
@@ -224,7 +224,9 @@ p +
 ```
 
 In the example above we see the linear relationship between both vectors and we get the slope and the T value:\
-- The **slope** indicates the what is the change in the response variable (vec2) given a 1 unit change in the predictor variable (vec1). - The T statistic is the result of a the T test. The T test assesses the significance of individual coefficients in our model and the T value indicates the number of standard errors the estimated coefficient is away from the null hypothesis (t = 0). Remember the T value is the coefficient / standard error.
+- The **slope** indicates the what is the change in the response variable (vec2) given a 1 unit change in the predictor variable (vec1).
+
+\- The **T statistic** is the result of a T test. The T test assesses the significance of individual coefficients in our model. The T value indicates the number of standard errors the estimated coefficient is away from the null hypothesis (t = 0). Remember the T value is the $\frac{coefficient}{standard~error}$.
 
 Now lets look at a "real world" example, we want to score the B cell signature in one cell. First we are going to start by visualizing the relationship between the weights and the gene expression for 2 cells of interest, one is a B cell and the other is not.
 
