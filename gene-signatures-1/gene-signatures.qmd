@@ -247,7 +247,6 @@ weights <- sig_df$mor
 
 # Fill in the matrix with the weights in the right places
 for (i in 1:nrow(sig_df)) {
-    print(i)
     .source <- sig_df$signature[[i]]
     .target <- sig_df$gene[[i]]
     .weight <- weights[[i]]
@@ -279,6 +278,11 @@ ggplot(mapping = aes(x = mat[, "TTTGCATGAGAGGC"], y = mor_mat[, "B cells", drop 
     stat_poly_eq(use_label(c("eq"))) +
     stat_correlation(use_label(c("t")), label.x = 0.05, label.y = 0.9)
 
+```
+
+We can see how the B cell signature for this first cell has a slope is 0.003 and the T statistic is 8.88 which is highly significant!
+
+```{r fig.width=9, fig.height=6, warning=FALSE}
 # Visualize the data
 ggplot(mapping = aes(x = mat[, "AAGATGGAGATAAG"], y = mor_mat[, "B cells", drop = FALSE])) +
     geom_point() +
@@ -294,6 +298,8 @@ ggplot(mapping = aes(x = mat[, "AAGATGGAGATAAG"], y = mor_mat[, "B cells", drop 
     stat_poly_eq(use_label(c("eq"))) +
     stat_correlation(use_label(c("t")), label.x = 0.05, label.y = 0.9)
 ```
+
+For this second cell, the B cell signature has a much smaller slope: 0.000235 and a small T statistic of 0.697 which is not significant!
 
 Next we are going to manually run the models for these two cells so that we can see that the results obtained from `decoupleR` make sense!
 
