@@ -1,6 +1,6 @@
 ## See our materials below 👇:
 1. 💊**[gene-signatures-1](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/main/gene-signatures-1/gene-signatures-R.html)**: Contains basic concepts on what are gene signatures and how should we score, interpret, and interrogate them!
-   [[R html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/main/gene-signatures-1/gene-signatures-R.html)]
-   [[Python html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/main/gene-signatures-1/gene-signatures-py.html)]
-   [[R code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/main/gene-signatures-1/gene-signatures-R.qmd)]
+   [[R html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/gene-signatures-1/gene-signatures-R.html)]
+   [[Python html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/gene-signatures-1/gene-signatures-py.html)]
+   [[R code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/gene-signatures-1/gene-signatures-R.qmd)]
    [[Python code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/gene-signatures-1/gene-signatures-py.ipynb)]
