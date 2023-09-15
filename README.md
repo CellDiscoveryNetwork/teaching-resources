@@ -4,7 +4,7 @@
    [[Python html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/gene-signatures-1/gene-signatures-py.html)]
    [[R code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/gene-signatures-1/gene-signatures-R.qmd)]
    [[Python code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/gene-signatures-1/gene-signatures-py.ipynb)] \
-2. 💊**Transcription factor activity scores, why do we need them and how to score them**: Contains basic concepts on TF activity scores. 1) why we need to compute them, 2) what do we need to score them, and 3) how do we interpret them!
+2. 💊**Transcription factor activity scores, why do we need them and how to score them**: Contains basic concepts on TF activity scores. 1) why we need to compute them, 2) what do we need to score them, and 3) how do we interpret the score!
    [[R html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/tf-activities/tf-activity-scoring-R.html)]
    [[Python html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/tf-activities/tf-activity-scoring-py.html)]
    [[R code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/tf-activities/tf-activity-scoring-R.qmd)]
