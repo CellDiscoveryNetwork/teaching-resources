@@ -1,5 +1,5 @@
 ---
-title: "Gene Signatures - How to score & interpret"
+title: "Gene Signatures - How to score & interpret them"
 author: "Marc Elosua Bayes"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 format:
@@ -16,7 +16,7 @@ theme:
 
 ## Introduction
 
-Gene signatures are commonly used in routine single cell analysis. Many methods exists but they are not all created equallty. In this tutorial we are going to go follow a recent benchmarking paper @badia-i-mompel2022 and follow their guidelines on best practices when scoring gene signatures!
+Gene signatures are commonly used in routine single cell analysis. Many methods exists but they are not all created equally. In this tutorial we are going to go follow a recent benchmarking paper @badia-i-mompel2022 and follow their guidelines on best practices when scoring gene signatures!
 
 With this tutorial we hope to familiarize you with the concepts of gene signatures, how they are scored in single cell datasets and how to interpret the scores obtained!
 
@@ -249,7 +249,6 @@ weights <- sig_df$mor
 
 # Fill in the matrix with the weights in the right places
 for (i in 1:nrow(sig_df)) {
-    print(i)
     .source <- sig_df$signature[[i]]
     .target <- sig_df$gene[[i]]
     .weight <- weights[[i]]
@@ -277,7 +276,7 @@ ggplot(mapping = aes(x = mat[, "TTTGCATGAGAGGC"], y = mor_mat[, "B cells", drop 
     ylim(0, 5) +
     theme_minimal() +
     # now we can add the slope of the line that best fits our data and the T value
-    stat_poly_line(formula = y ~ x, se = FALSE) +
+    stat_poly_line(formula = x ~ y, se = FALSE) +
     stat_poly_eq(use_label(c("eq"))) +
     stat_correlation(use_label(c("t")), label.x = 0.05, label.y = 0.9)
 
@@ -292,7 +291,7 @@ ggplot(mapping = aes(x = mat[, "AAGATGGAGATAAG"], y = mor_mat[, "B cells", drop 
     ylim(0, 2.5) +
     theme_minimal() +
     # now we can add the slope of the line that best fits our data and the T value
-    stat_poly_line(formula = y ~ x, se = FALSE) +
+    stat_poly_line(formula = x ~ y, se = FALSE) +
     stat_poly_eq(use_label(c("eq"))) +
     stat_correlation(use_label(c("t")), label.x = 0.05, label.y = 0.9)
 ```
@@ -324,7 +323,7 @@ We can see how mod1 has returned a high coefficient for cell `TTTGCATGAGAGGC` wh
 Lets check that the T values obtained manually actually match those returned by `decoupleR`
 
 ```{r}
-res %>% filter(source == "B cells" & condition %in% c("TTTGCATGAGAGGC", "AAGATGGAGATAAG"))
+res %>% filter(source == "PAX5" & condition %in% c("TTTGCATGAGAGGC", "AAGATGGAGATAAG"))
 ```
 
 Effectively, they do!
