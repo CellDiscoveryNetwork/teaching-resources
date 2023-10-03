@@ -21,7 +21,7 @@ scRNA-seq data returns individual molecular reads for each cell representing the
 <img src="img/mereu-lafzi-dropouts.png" width="900"/>\
 *Figure 1. Dropout Probability vs Expression level*
 
-In this tutorial we are going to go over the best practices on how to compute these activites, what we need to take into account when computing them and follow a recent benchmarking paper to determine which are the best reference databases @müller-dott2023 and tools to use like `decoupler` @badia-i-mompel2022!
+In this vignette we are going to go over the best practices on how to compute these activites, what we need to take into account when computing them and follow a recent benchmarking paper to determine which are the best reference databases @müller-dott2023 and tools to use like `decoupler` @badia-i-mompel2022!
 
 Before we start here are some key concepts that will help us and frame the vignette!
 
