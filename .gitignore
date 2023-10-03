@@ -49,3 +49,12 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Don't include specific directories
+.conda/
+*/.ipynb_checkpoints/
+*/data
+*/omnipathr-log/
+omnipathr-log/
+*.webp
+*.rds

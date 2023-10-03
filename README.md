@@ -9,4 +9,3 @@
    [[Python html](https://htmlpreview.github.io/?https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/tf-activities/tf-activity-scoring-py.html)]
    [[R code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/tf-activities/tf-activity-scoring-R.qmd)]
    [[Python code](https://github.com/CellDiscoveryNetwork/teaching-resources/blob/gh-pages/tf-activities/tf-activity-scoring.ipynb)]
-
