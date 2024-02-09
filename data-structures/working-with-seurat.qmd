@@ -1,0 +1,264 @@
+---
+title: "How to work with Seurat objects"
+author: "Marc Elosua Bayes"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+format:
+  html:
+    embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: console
+theme:
+  light: flatly
+  dark: darkly
+---
+
+## Introduction
+
+In this vignette we are going to show how to work with `Seurat` objects. We will go over how the object is structured, how to access the different data types stored in it and provide some examples of how to do so. We will be doing this on the `3K PBMC` dataset from 10X genomics and the `Broad Institute PBMC Systematic Comparative Analysis`. By the end of this script you will be able to:
+
+1)  Access the different data contained within a `Seurat` object
+2)  Merge multiple `Seurat` objects
+3)  Access the raw, normalized, and scaled counts
+4)  Extract the highly variable genes (HVG)
+5)  Subset to a specific gene or cell subset
+6)  Access the PCA and UMAP loadings
+
+This is not an exhaustive vignette of everything going on within the Seurat object. More extensive resources can be found in Seurat's [essential commands vignette](https://satijalab.org/seurat/articles/seurat5_essential_commands)
+
+## Libraries
+
+Load the libraries and install the packages needed to run this notebook
+
+```{r warning=FALSE, message=FALSE}
+library(tidyverse)
+library(Seurat)
+library(SeuratData)
+
+# install tutorial data if it doesn't exist 
+if (!require("pbmc3k.SeuratData", character.only = TRUE))
+    install.packages(
+        "https://seurat.nygenome.org/src/contrib/pbmc3k.SeuratData_3.1.4.tar.gz",
+        repos = NULL,
+        type = "source")
+
+# install tutorial data if it doesn't exist 
+if (!require("pbmcsca.SeuratData", character.only = TRUE))
+    install.packages(
+        "https://seurat.nygenome.org/src/contrib/pbmcsca.SeuratData_3.0.0.tar.gz",
+        repos = NULL,
+        type = "source")
+
+library(pbmc3k.SeuratData)
+library(pbmcsca.SeuratData)
+
+# Remember to set a seed so the analysis is reproducible!
+set.seed(687)
+```
+
+## Load data
+
+Lets load the data and take a peek at what they have stored for us!
+
+```{r}
+data(pbmc3k)
+# since we are working with Seurat V5 we need to do one extra step - you won't need to do this if you're creating your object from scratch
+pbmc3k <- UpdateSeuratObject(pbmc3k)
+pbmc3k
+```
+
+Right of the bat, we see how this is an object of class Seurat and has 13.714 genes and 2.700 cells. It also has an RNA assay - which contains our gene expression matrix that stores 2 layers. `counts` for the raw/unnormalized gene expression data and `data` for normalized gene expression data.
+
+```{r}
+data(pbmcsca)
+pbmcsca <- UpdateSeuratObject(pbmcsca)
+pbmcsca
+```
+
+In turn, the `pbmcsca` object has 33.694 genes and 31.021 cells and the same structure as the `pbmc3k` object
+
+## Accessing cell-associated metadata
+
+The cell metadata contains information related to each cell. This information includes information regarding the sample or patient it comes from: disease, condition, date of collection, batch... and information specific for that cell: cell type, number of UMI counts, number of genes detected, mitochondrial % ...
+
+To access this information we need to access the metadata, we can do this with the `@metadata` accessor.
+```{r}
+# Use head to only visualize the information of the first 5 cells
+head(pbmc3k@meta.data)
+head(pbmcsca@meta.data)
+```
+
+We can access a specific column like this:
+```{r}
+head(pbmcsca[["nGene"]])
+head(pbmcsca$nGene)
+head(pbmcsca@meta.data$nGene)
+```
+
+
+We can see how in the `pbmc3k` object we have 4 features associated to each cell. For `pbmcsca`, in turn we have 10. Out of these 2 we see how there are some redundancies - `nCount_RNA` == `nUMI` and `nFeature_RNA` == `nGene`. We can remove redundant columns as follows:
+```{r}
+pbmcsca[["nGene"]] <- NULL
+pbmcsca[["nUMI"]] <- NULL
+head(pbmcsca)
+```
+
+We can also add metadata of interest - for example log1p of nCount_RNA"
+```{r}
+pbmc3k[["log1p_nCount_RNA"]] <- log1p(pbmc3k[["nCount_RNA"]])
+pbmcsca[["log1p_nCount_RNA"]] <- log1p(pbmcsca[["nCount_RNA"]])
+head(pbmcsca@meta.data)
+```
+
+## Merging Seurat objects
+
+Merging `Seurat` objects is a typical set in many analysis. To do it we can simply use the merge function:
+```{r}
+se <- merge(x = pbmc3k, y = pbmcsca)
+se
+```
+
+We can see how we now have a larger object with 34.231 genes and 33.721 cells.
+
+If we were merging more than 2 Seurat objects the 2nd argument of the merge function needs to be a list with all the seurat objects except the one passed to the first argument:
+```{r}
+# This is an example code and we are not storing the output anywhere
+merge(x = pbmc3k, y = list(pbmcsca, pbmc_small))
+```
+
+Once they are merged we can take a quick look at the metadata. By looking at the head and tail we can see how the merge concatenated both seurat objects, the ones at the top have orig.ident = orig.ident and at the bottom pbmc2. Moreover, we can see how the metadata columns that weren't present in each other have been maintained and filled with NAs. So in case of the `pbmc3k` there are NAs in columns: percent.mito, Cluster, CellType, and Experiment Method while for `pbmcsca` there are NAs in seurat_annotations.
+
+```{r}
+head(se@meta.data)
+tail(se@meta.data)
+```
+
+Since we want to have one column where all the column names are the same we can make use of the tidyverse and do the following:
+```{r}
+se@meta.data <- se@meta.data %>%
+    mutate(
+        annotation = if_else(is.na(seurat_annotations), CellType, seurat_annotations))
+
+table(se@meta.data$annotation, useNA = "ifany")
+
+# after doing table we still see 62 NA but they were already there in the pbmc3k dataset
+table(pbmc3k@meta.data$seurat_annotations, useNA = "ifany")
+```
+
+## Accessing gene expression data
+
+This is a non-essential but it is good to know to have a better understanding of how Seurat objects work and what data we are using at each step.
+Gene expression data is usually stored in the RNA Assay:
+
+```{r}
+se@assays
+```
+
+Lets quickly process the object to have normalized and scaled data
+```{r}
+se <- NormalizeData(se, assay = "RNA", normalization.method = "LogNormalize", scale.factor = 10000)
+se <- FindVariableFeatures(se, selection.method = "vst", nfeatures = 3000)
+se <- ScaleData(se, features = VariableFeatures(se))
+```
+
+Within each assay we will have the raw, normalized, and scaled data:
+```{r}
+# counts contains the raw gene expression counts
+se@assays$RNA@counts[1:5, 1:5]
+# data contains the normalized gene expression
+se@assays$RNA@data[1:5, 1:5]
+# scale.data contains the scaled normalized data, usually for the HVG
+se@assays$RNA@scale.data[1:5, 1:5]
+```
+
+## PCA and UMAP data
+
+Quick processing to compute PCA and UMAP
+```{r}
+se <- RunPCA(se, assay = "RNA", features = VariableFeatures(se))
+ElbowPlot(se, ndims = 50)
+se <- RunUMAP(se, dims = 1:30)
+```
+
+At this step we can look at the UMAP and the annotations
+```{r fig.height=6, fig.width=9}
+Seurat::DimPlot(
+    se,
+    group.by = "annotation",
+    label = TRUE,
+    shuffle = TRUE)
+```
+
+
+Let's see where this data is stored
+```{r}
+se@reductions
+```
+
+PCA loadings are stored here
+```{r}
+# Cell embeddings where we get the PCA loadings for each cell
+se@reductions$pca@cell.embeddings[1:5, 1:5]
+
+# Gene loadings for each principal component
+se@reductions$pca@feature.loadings[1:5, 1:5]
+```
+
+Now the UMAP loadings
+```{r}
+# Cell embeddings where we get the PCA loadings for each cell
+se@reductions$umap@cell.embeddings[1:5, ]
+
+# Gene loadings for each principal component
+se@reductions$pca@feature.loadings[1:5, 1:5]
+```
+
+## Subsetting a Seurat object
+
+Another common action to carry out on a Seurat object is to filter out non informative genes or specific cell types.
+
+### Filtering out genes
+
+Let's see how we can filter out those genes whose expression is 0 across all cells\
+```{r}
+gene_idx <- sparseMatrixStats::rowSums2(se@assays$RNA@counts) > 0
+table(gene_idx) 
+```
+
+There are 4.012 genes that have 0s for all cells. These genes are uninformative and can be remove from the analysis
+```{r}
+print("Before filtering")
+se
+print("After filtering")
+(se <- se[gene_idx, ])
+```
+
+We have gone from 34.231 genes to 30.219 genes
+
+### Subsetting by cell type
+
+Another common action is to subset for a specific cell subset for further downstream analysis.
+
+Here we are going to subset and keep only the T cells
+```{r}
+(se_t <- se[, se$annotation %in% c("Memory CD4 T", "CD8 T", "Naive CD4 T", "CD4+ T cell")])
+```
+
+We are left with 8.842 cells
+
+Let's see if it worked!
+```{r fig.height=4, fig.width=6}
+library(RColorBrewer)
+Seurat::DimPlot(
+    se_t,
+    group.by = "annotation",
+    label = TRUE,
+    cols = "Dark2",
+    shuffle = TRUE)
+```
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
