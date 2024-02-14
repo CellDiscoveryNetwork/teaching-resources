@@ -23,34 +23,55 @@ In this vignette we are going to show how to work with `Seurat` objects. We will
 4)  Extract the highly variable genes (HVG)
 5)  Subset to a specific gene or cell subset
 6)  Access the PCA and UMAP loadings
+7)  Basic visualizations
 
 This is not an exhaustive vignette of everything going on within the Seurat object. More extensive resources can be found in Seurat's [essential commands vignette](https://satijalab.org/seurat/articles/seurat5_essential_commands)
 
 ## Libraries
 
-Load the libraries and install the packages needed to run this notebook
+Install the packages and load the libraries and  needed to run this notebook.
 
 ```{r warning=FALSE, message=FALSE}
+# Check if tidyverse is installed, if not install it
+if (!requireNamespace("tidyverse", quietly = TRUE))
+    install.packages("tidyverse")
 library(tidyverse)
+
+# Check if Seurat is installed, if not install it
+if (!requireNamespace("Seurat", quietly = TRUE))
+    install.packages("Seurat")
 library(Seurat)
+
+if (!requireNamespace("devtools", quietly = TRUE))
+    install.packages("devtools")
+
+# install SeuratData if not already present
+if (!requireNamespace("SeuratData", quietly = TRUE))
+    devtools::install_github('satijalab/seurat-data')
 library(SeuratData)
 
 # install tutorial data if it doesn't exist 
-if (!require("pbmc3k.SeuratData", character.only = TRUE))
+if (!requireNamespace("pbmc3k.SeuratData", quietly = TRUE))
     install.packages(
         "https://seurat.nygenome.org/src/contrib/pbmc3k.SeuratData_3.1.4.tar.gz",
         repos = NULL,
         type = "source")
+library(pbmc3k.SeuratData)
 
 # install tutorial data if it doesn't exist 
-if (!require("pbmcsca.SeuratData", character.only = TRUE))
+if (!requireNamespace("pbmcsca.SeuratData", quietly = TRUE))
     install.packages(
         "https://seurat.nygenome.org/src/contrib/pbmcsca.SeuratData_3.0.0.tar.gz",
         repos = NULL,
         type = "source")
-
-library(pbmc3k.SeuratData)
 library(pbmcsca.SeuratData)
+
+# Install Bioconductor packages
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+if (!requireNamespace("sparseMatrixStats", quietly = TRUE))
+    BiocManager::install("sparseMatrixStats")
 
 # Remember to set a seed so the analysis is reproducible!
 set.seed(687)
@@ -79,7 +100,7 @@ In turn, the `pbmcsca` object has 33.694 genes and 31.021 cells and the same str
 
 ## Accessing cell-associated metadata
 
-The cell metadata contains information related to each cell. This information includes information regarding the sample or patient it comes from: disease, condition, date of collection, batch... and information specific for that cell: cell type, number of UMI counts, number of genes detected, mitochondrial % ...
+The cell metadata contains information related to each cell. This includes information regarding the sample or patient it comes from: disease, condition, date of collection, batch... and information specific for that cell: cell type, number of UMI counts, number of genes detected, mitochondrial % ...
 
 To access this information we need to access the metadata, we can do this with the `@metadata` accessor.
 ```{r}
@@ -88,7 +109,7 @@ head(pbmc3k@meta.data)
 head(pbmcsca@meta.data)
 ```
 
-We can access a specific column like this:
+We can access a specific cell-associated feature in different ways. This is just for illustrative purposes to demonstrate the different ways to go about it and make sense of it when you see it thrown around.
 ```{r}
 head(pbmcsca[["nGene"]])
 head(pbmcsca$nGene)
@@ -164,12 +185,17 @@ se <- ScaleData(se, features = VariableFeatures(se))
 Within each assay we will have the raw, normalized, and scaled data:
 ```{r}
 # counts contains the raw gene expression counts
-se@assays$RNA@counts[1:5, 1:5]
-# data contains the normalized gene expression
-se@assays$RNA@data[1:5, 1:5]
+se@assays$RNA@counts[10:15, 10:15]
+dim(se@assays$RNA@counts)
+# data contains the normalized gene expression - non integers
+se@assays$RNA@data[10:15, 10:15]
+dim(se@assays$RNA@data)
 # scale.data contains the scaled normalized data, usually for the HVG
 se@assays$RNA@scale.data[1:5, 1:5]
+dim(se@assays$RNA@scale.data)
 ```
+
+We can see how there are only 3000 rows (cells) in the scale.data since we only did this on the HVG.
 
 ## PCA and UMAP data
 
@@ -180,17 +206,27 @@ ElbowPlot(se, ndims = 50)
 se <- RunUMAP(se, dims = 1:30)
 ```
 
-At this step we can look at the UMAP and the annotations
+At this step we can look at the PCA and UMAP and the annotations
 ```{r fig.height=6, fig.width=9}
+se$seurat_annotations
 Seurat::DimPlot(
     se,
     group.by = "annotation",
     label = TRUE,
-    shuffle = TRUE)
+    shuffle = TRUE,
+    reduction = "pca")
+
+
+Seurat::DimPlot(
+    se,
+    group.by = "annotation",
+    label = TRUE,
+    shuffle = TRUE,
+    reduction = "umap")
 ```
 
 
-Let's see where this data is stored
+Let's see where the PCA and UMAP data is stored
 ```{r}
 se@reductions
 ```
