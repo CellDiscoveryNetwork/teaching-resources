@@ -1,6 +1,6 @@
 ---
 title: "How to work with Seurat objects"
-author: "Marc Elosua Bayes"
+author: "Marc Elosua Bayes & Rose Hedderman"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 format:
   html:
